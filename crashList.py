@@ -4,11 +4,9 @@ import json
 import time
 
 # 查询的崩溃时间
-needUploadTime = "2021-12-06"
+needUploadTime = "2021-12-07"
 # 筛选目标版本
 needVersion = "4.4.8.0"
-# 统计前Top的崩溃, 设置80基本就等于一整天的崩溃量, 设置100接口不支持
-crashTopLimit = '20'
 # 聚合的崩溃列表一页的数量, 官方接口支持, 前100基本可以算出当天当前崩溃数量
 crashListLimit = '100'
 # cookie需要自己更新
@@ -76,6 +74,8 @@ def getCrashNumWithTry(issueId):
         time.sleep(1)
         print "try again getCrashNum"
         count = getCrashNum(issueId)
+
+    print {"issueId": issueId, "count": count}
     return count
 
 # 时间戳转换成指定格式时间
@@ -102,9 +102,9 @@ def calucateTime(startTime, days):
     startTimeStamp = converDataToTime(startTime)
     return convertTime(startTimeStamp + (days * 24 * 60 * 60))
 
-# 计算java崩溃的数量
-def getJavaCrashTotalNum():
-    crashList = getIssueListWithRetry('Crash')
+# 计算某个类型崩溃的数量
+def getCrashTotalNum(crashType):
+    crashList = getIssueListWithRetry(crashType)
     issueList = crashList['data']['issueList']
     count = 0
     for issue in issueList:
@@ -113,14 +113,14 @@ def getJavaCrashTotalNum():
         if converDataToTime(lastestUploadTime, 1) < converDataToTime(needUploadTime, 2):
             continue
 
-        print 'lastestUploadTime:' + lastestUploadTime
+        # print 'lastestUploadTime:' + lastestUploadTime
         count += getCrashNumWithTry(issue['issueId'])
 
     return count
 
-# print converDataToTime('2021-12-07 22:20:15 978', 1)
-#
-count = getJavaCrashTotalNum()
-print "===============统计结果==================="
-print "javaCrashNum:" + str(count)
 
+javaCount = getCrashTotalNum("Crash")
+nativeCount = getCrashTotalNum("Native")
+print "===============统计结果==================="
+print "nativeCount" + str(nativeCount) + ",java:" + str(javaCount)
+print {"NativeCrashNum": nativeCount,  "JavaCrashNum": javaCount, "TotalNum": nativeCount + javaCount, "time": needUploadTime, "version": needVersion }
