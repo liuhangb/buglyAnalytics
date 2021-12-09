@@ -33,7 +33,6 @@ def getIssueListWithRetry(crashType):
 
 #校验数据, 并打印错误数据
 def checkData(data, tag):
-    print data['code']
     if data["code"] != 200:
         print "[" + tag + "]", data
 
